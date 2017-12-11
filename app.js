@@ -5,6 +5,7 @@ var ip = require("ip");
 var pgp = require('pg-promise')();
 var url = require('url');
 
+
  // ---------------- Övriga funktioner ----------------
 
 
@@ -33,15 +34,22 @@ var sendBasePage = function(resp) {
     resp.write("<li class='list-group-item'><a href='allabokningar.html'>Alla bokningar</a></li>\n");
     resp.write("<li class='list-group-item'><a href='epostlista.html'>Kunder och epostadresser</a></li>\n");
     resp.write("<li class='list-group-item'><a href='boka'>Boka garageplats</a></li>\n");
+    resp.write("<li class='list-group-item'><a href='search_kund'>Sök bokningar</a></li>\n");
     resp.write("</ul></div></div>");
 
-    resp.write("<div class='row'>")
+  /*  resp.write("<div class='row'>")
     resp.write("<div class='col-sm-8'>")
     resp.write("<form action=bokningar method='GET'><div class='form-check'><label class='form-check-label'>\n");
     resp.write("<input class='form-check-input' type='radio' name='elbilsplats' value=1 checked> Visa Elbilsbokningar<br></label>\n");
     resp.write("<label class='form-check-label'><input class='form-check-input' type='radio' name='elbilsplats' value=0> Visa alla bokningar<br></label>\n");
     resp.write("<input type='submit' class='btn btn-primary' value='Ok'>\n");
-    resp.write("</div></form>\n");
+    resp.write("</div></form>\n");*/
+
+    resp.write("<div class='row'>")
+    resp.write("<div class='col-sm-8'>")
+    resp.write("<form action=kundnummer method='GET'><div class='form-group'><label for='kundnummer'>Text</label><input type='text' class='form-control' id='kundnummer' placeholder='Example input'></div>\n")
+    resp.write("<button type='submit' class='btn btn-primary'> Sök </button>\n");
+    resp.write("</form>\n");
 
 
     resp.end("</div></div></body>");
@@ -55,27 +63,47 @@ var sendNotFound = function(url, resp) {
     resp.end();
 }
 
+
+//----- ALLA BOKNINGAR --------
 var sendAllaBokningar = function(resp) {
     var handleAllaBokningar = function(rows) {
-        resp.write("<!DOCTYPE html><meta charset='UTF-8'><title>Alla bokningar</title>\n");
-        resp.write("<table><tr><th>Namn</th><th>Parkeringsplats</th></tr>\n");
+        resp.write("<!DOCTYPE html><meta charset='UTF-8'><title>Alla bokningar</title>");
+        resp.write("<body><link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>\n");
+        resp.write("<div class='container'>");
+
+        resp.write("<table class='table table-striped'><thead><tr><th scope='col'>Namn</th><th scope='col'>Parkeringsplats</th><th scope='col'>Startdatum</th><th scope='col'>Slutdatum</th></tr></thead>\n");
+        resp.write("<tbody>")
+
 
         for (i = 0; i < rows.length; i++) {
-            resp.write("<tr><td>" + rows[i].namn+" </td><td> "+rows[i].objektnamn + "</td></tr>\n");
+
+          //Formattera startdatum
+          var dateStartFromDatabase = rows[i].startdatum;
+          var localStartDate = new Date(dateStartFromDatabase);
+          var localStartDateString = localStartDate.toLocaleDateString();
+
+          //Formattera slutdatum
+          var dateEndFromDatabase = rows[i].slutdatum;
+          var localEndDate = new Date(dateEndFromDatabase);
+          var localEndDateString = localEndDate.toLocaleDateString();
+
+
+            resp.write("<tr><td>" + rows[i].namn+" </td><td>" + rows[i].objektnamn+" </td><td>" + localStartDateString+" </td><td>" + localEndDateString+" </td></tr>\n");
         }
 
-        resp.end("</table>");
+        resp.end("</tbody></table></div></body>");
     }
 
     var handleError = function(err) {
         resp.end("<!DOCTYPE html><title>Fel!</title>Det blev fel! " + err);
     }
 
-    sqlConn.any('select namn, objektnamn, starttid from ((objekt join bokning on objekt.objektid=bokning.objektID) bokning join kund on bokning.pnr=kund.pnr)')
+    sqlConn.any('select namn, objektnamn, startdatum, slutdatum from ((objekt join bokning on objekt.objektid=bokning.objektID) bokning join kund on bokning.pnr=kund.pnr)')
         .then(handleAllaBokningar)
         .catch(handleError);
 }
 
+// --------------- E-POSTLISTA -----------------
 var sendNamnEpost = function(resp) {
      var handleNamnEpost = function(rows) {
         resp.write("<!DOCTYPE html><meta charset='UTF-8'><title>E-postadresslista</title>\n");
@@ -95,6 +123,7 @@ var sendNamnEpost = function(resp) {
         .catch(handleError);
 }
 
+// ------------- ELBILSPLATSER ------------------
 var sendBokningar = function(elbilsplats, resp) {
     var handleBokningar = function(rows) {
 
@@ -217,6 +246,31 @@ var handleSkapaBokning_step2 = function(rows) {
 
   }
 
+// ----------------- Sök kund efter kundnummer --------------
+
+var sendSearchKund = function(kundnummer, resp) {
+    var handleSearch_Kund = function(rows) {
+
+        resp.write("<!DOCTYPE html><meta charset='UTF-8'><title>Sök kund</title>\n");
+        resp.write("<h1>Visar resultat på kund: "+rows.pnr+"</h1>");
+        resp.write("<ul>\n");
+
+        resp.write("<br><li>"+resp.namn+" - "+resp.pnr+" "+resp.epost+"</li>\n");
+
+        resp.end("</ul>");
+    }
+
+    var handleError = function(err) {
+        resp.end("<!DOCTYPE html><title>Fel!</title>Det blev fel! " + err);
+}
+
+//
+    sqlConn.any('select namn, pnr, epost from kund where pnr=$1', [kundnummer])
+        .then(handleSearch_Kund)
+        .catch(handleError);
+
+}
+
 // ---------------- the core request handler ----------------
 
 var handleWebRequest = function(req, resp) {
@@ -233,6 +287,8 @@ var handleWebRequest = function(req, resp) {
         sendAllaBokningar(resp);
     } else if (req.url == "/epostlista.html") {
         sendNamnEpost(resp);
+    } else if (parsed.pathname == "/kundnummer") {
+            sendSearchKund(parsed.query.kundnummer, resp);
     } else if (parsed.pathname == "/bokningar") {
         sendBokningar(parsed.query.elbilsplats, resp);
     } else if (req.url == "/boka"){
