@@ -1,5 +1,4 @@
-// ws03.js
-// Jesper Larsson 2016
+
 
 var http = require('http');
 var ip = require("ip");
