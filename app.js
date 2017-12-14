@@ -1,4 +1,4 @@
-//Bokningsapp av Pauline, Olliver och Mattias
+//Gruppuppgift: Pauline, Olliver och Mattias
 
 var http = require('http');
 var ip = require("ip");
@@ -6,7 +6,6 @@ var pgp = require('pg-promise')();
 var url = require('url');
 
 
- // ---------------- Övriga funktioner ----------------
 
 
 // ---------------- database connection ----------------
@@ -20,19 +19,9 @@ var sqlConn = pgp({
 });
 
 
-// ------------ Helper functions ---------
+// ------------ vvv Style functions below vvv---------
 
 
-/*
-$('#exampleModal').on('show.bs.modal', function (event) {
-  var button = $(event.relatedTarget) // Button that triggered the modal
-  var recipient = button.data('whatever') // Extract info from data-* attributes
-  // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
-  // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-  var modal = $(this)
-  modal.find('.modal-title').text('New message to ' + recipient)
-  modal.find('.modal-body input').val(recipient)
-})*/
 
 // ------------ Navbar ---------
 function showNavbar(resp, err){
@@ -41,7 +30,7 @@ function showNavbar(resp, err){
   resp.write("<div class='container-fluid'>");
   resp.write("<div class='navbar-header'>");
   resp.write("<a class='navbar-brand' href='/'>");
-  resp.write("<button type='button' class='btn btn-primary'>Home</button>");
+  resp.write("<button type='button' class='btn btn-primary'>Hem</button>");
   resp.write("</a></div></div></nav>");
 }
 
@@ -52,7 +41,7 @@ resp.write("<img src='http://www.stockholmparkering.se/SiteAssets/siluett_med_by
 resp.write("</div>");
 }
 
-// ------------ Footer ---------
+// ------------ Handle Error ---------
 var handleError = function(resp, err) {
     resp.write("<!DOCTYPE html><meta charset='UTF-8'><title>Fel!</title>");
     showNavbar(err)
@@ -89,7 +78,6 @@ var sendBasePage = function(resp) {
     resp.write("<div class='col-sm-3'><ul class='list-group'>");
     resp.write("<li class='list-group-item'><a href='allabokningar.html'>Alla bokningar</a></li>\n");
     resp.write("<li class='list-group-item'><a href='epostlista.html'>Kunder och epostadresser</a></li>\n");
-    resp.write("<li class='list-group-item'><a href='boka'>Boka garageplats</a></li>\n");
     resp.write("<li class='list-group-item'><a href='sok_kund'>Sök bokning</a></li>\n");
 
     resp.write("</p></div");
@@ -114,7 +102,7 @@ var sendNotFound = function(url, resp) {
 
     showFooter(resp);
 
-    resp.write("</div></div></div></body>");
+    resp.write("</div></body>");
 }
 
 
@@ -155,8 +143,6 @@ var sendAllaBokningar = function(resp) {
         resp.end("</div></body>");
     }
 
-
-
     sqlConn.any('select namn, objektnamn, startdatum, slutdatum, bokningsnr from ((objekt join bokning on objekt.objektid=bokning.objektID) bokning join kund on bokning.pnr=kund.pnr)')
         .then(handleAllaBokningar)
         .catch(handleError);
@@ -195,54 +181,7 @@ var sendNamnEpost = function(resp) {
         .catch(handleError);
 }
 
-// --------------------- Skapa bokning: STEP 1 ------------------
 
-    var sendSkapaBokning_step1 = function(resp) {
-
-      resp.write("<!DOCTYPE html><meta charset='UTF-8'><title>Bokningar</title>\n");
-      resp.write("<h1>Skapa bokning:</h1>\n");
-      resp.write("<p><form method='GET'>" + "Startdatum: "+"<input type='date' name='startdatum'>\n");
-      resp.write("Slutdatum: "+"<input type='date' name='slutdatum'><br>\n");
-      resp.write("<input type='submit' value='Sök lediga parkeringsplatser'></form>\n");
-
-        var handleError = function(err) {
-            resp.end("<!DOCTYPE html><title>Fel!</title>Det blev fel! " + err);
-        }
-        resp.end();
-}
-// ---------------- Skapa bokning: STEP 2
-
-var sendSkapaBokning_step2 = function(startdatum, slutdatum, resp) {
-var handleSkapaBokning_step2 = function(rows) {
-
-  resp.write("<!DOCTYPE html><meta charset='UTF-8'><title>Bokningar</title>\n");
-  resp.write("<h1>Skapa bokning - Steg 2</h1>\n");
-  resp.write("<h5>Följande platser är bokningsbara:</h5><ul>\n");
-
-          for (i = 0; i < rows.length; i++) {
-
-            resp.write("<br><li>"+rows[i].objektnamn+"</li>\n");
-  }
-
-        resp.end("</ul>");
-
-    }
-
-    var handleError = function(err) {
-        resp.end("<!DOCTYPE html><title>Fel!</title>Det blev fel! " + err);
-  }
-
-        sqlConn.any('select objekt.objektNamn, objektID from objekt where objekt.objektID not in (select bokning.objektID from (bokning join objekt on bokning.objektID = objekt.objektID) where bokning.startdatum <= $1  and bokning.slutdatum >= $1)', [startdatum, slutdatum])
-
-          .then(data => {
-          console.log('DATA', data)
-          handleSkapaBokning_step2(); // print data;
-          })
-          .catch(error => {
-          console.log('ERROR:', error);
-          });
-
-  }
   // --------------------- Sök bokningar på kundnummer - STEG 1 ------------------
 
         var sendSokBokning = function(resp) {
@@ -260,7 +199,7 @@ var handleSkapaBokning_step2 = function(rows) {
 
         resp.write("<p><form method='GET'><div class='form-group'>");
         resp.write("Ange personnummer på den person vars bokningar du önskar visa.")
-        resp.write("<input type='text' class='form-control' name='kundnummer' placeholer='Personnummer'>\n");
+        resp.write("<input type='text' class='form-control' name='kundnummer' placeholder='Personnummer'>\n");
         resp.write("</div>")
         resp.write("<div class='form-group mx-sm-3'>")
         resp.write("<button type='input' class='btn btn-primary'>Sök bokningar</button>")
@@ -349,12 +288,6 @@ var handleWebRequest = function(req, resp) {
             sendSokBokning(resp);
     } else if (parsed.pathname == "/sok_kund") {
             sendSearchKund(parsed.query.kundnummer, resp);
-    } else if (parsed.pathname == "/bokningar") {
-        sendBokningar(parsed.query.elbilsplats, resp);
-    } else if (req.url == "/boka"){
-          sendSkapaBokning_step1(resp);
-    } else if (parsed.pathname == "/boka"){
-        sendSkapaBokning_step2(parsed.query.startdatum.slutdatum, resp);
     } else {
         sendNotFound(req.url, resp);
     }
