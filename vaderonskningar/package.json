@@ -1,0 +1,15 @@
+{
+  "name": "vaderonskningar",
+  "version": "1.0.0",
+  "description": "Webbplats där kunder kan lägga in önskemål om väder på en specifik dag.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node --experimental-sqlite server.js",
+    "dev": "node --experimental-sqlite --watch server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "license": "MIT"
+}

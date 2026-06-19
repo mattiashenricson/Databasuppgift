@@ -1,0 +1,5 @@
+# Lokal SQLite-databas skapas vid körning
+vaderonskningar.db
+vaderonskningar.db-*
+
+node_modules/

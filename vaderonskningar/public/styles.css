@@ -1,0 +1,325 @@
+/* ============================================================
+   Väderönskan – stilmall
+   Tema: himmel & väder. Lugn blå skala med en varm solgul accent.
+   ============================================================ */
+
+:root {
+  --sky-50:  #f0f7ff;
+  --sky-100: #e0eefe;
+  --sky-200: #bcd9fb;
+  --sky-300: #8cbef7;
+  --sky-500: #3b82f6;
+  --sky-600: #2563eb;
+  --sky-700: #1d4ed8;
+  --ink:     #0f2347;
+  --ink-soft:#43557a;
+  --sun:     #fbbf24;
+  --sun-deep:#f59e0b;
+  --rain:    #38bdf8;
+  --surface: #ffffff;
+  --line:    #e3ebf5;
+  --good:    #15803d;
+  --good-bg: #dcfce7;
+  --bad:     #b91c1c;
+  --bad-bg:  #fee2e2;
+
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 10px 30px -12px rgba(15, 35, 71, 0.25);
+  --shadow-sm: 0 2px 8px -2px rgba(15, 35, 71, 0.18);
+  --maxw: 1040px;
+  --font: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 80% -10%, var(--sky-100), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, #fff7e6, transparent 55%),
+    var(--sky-50);
+  line-height: 1.55;
+}
+
+h1, h2, h3 { line-height: 1.15; margin: 0; }
+
+a { color: var(--sky-700); }
+
+/* ---------------- Topbar ---------------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem clamp(1rem, 4vw, 2.5rem);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+}
+.brand-emoji { font-size: 1.5rem; }
+.topnav { display: flex; gap: 1.4rem; }
+.topnav a {
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.topnav a:hover { color: var(--sky-700); }
+
+/* ---------------- Hero ---------------- */
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: clamp(3rem, 8vw, 6rem) clamp(1rem, 4vw, 2.5rem) clamp(2rem, 4vw, 3rem);
+}
+.hero-inner { max-width: 640px; }
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--sun-deep);
+  margin: 0 0 0.75rem;
+}
+.hero h1 {
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+.lead {
+  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+  color: var(--ink-soft);
+  margin: 1.2rem 0 1.8rem;
+}
+
+/* ---------------- Sektioner ---------------- */
+.section {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 4vw, 2.5rem);
+}
+.section-head { margin-bottom: 1.6rem; }
+.section-head h2 {
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.section-head p { color: var(--ink-soft); margin: 0.4rem 0 0; }
+
+/* ---------------- Kort ---------------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* ---------------- Knappar ---------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.65rem 1.3rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.05s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn-lg { padding: 0.85rem 1.8rem; font-size: 1.05rem; }
+.btn-primary {
+  background: linear-gradient(180deg, var(--sky-500), var(--sky-600));
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:hover { background: linear-gradient(180deg, var(--sky-600), var(--sky-700)); }
+.btn-outline {
+  background: #fff;
+  border-color: var(--sky-300);
+  color: var(--sky-700);
+}
+.btn-outline:hover { background: var(--sky-50); }
+
+/* ---------------- Formulär ---------------- */
+.form-card { padding: clamp(1.25rem, 3vw, 2rem); }
+.field { border: 0; padding: 0; margin: 0 0 1.4rem; }
+.field legend, .field label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.7rem;
+  color: var(--ink);
+}
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+input[type="date"], input[type="email"] {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  color: var(--ink);
+  background: #fff;
+}
+input:focus-visible {
+  outline: none;
+  border-color: var(--sky-500);
+  box-shadow: 0 0 0 3px var(--sky-100);
+}
+
+/* ---------------- Vädertyp-rutnät ---------------- */
+.weather-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.7rem;
+}
+.weather-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.9rem;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+}
+.weather-option:hover { border-color: var(--sky-300); transform: translateY(-2px); }
+.weather-option input { position: absolute; opacity: 0; pointer-events: none; }
+.weather-option .emoji { font-size: 1.9rem; }
+.weather-option .namn { font-weight: 700; font-size: 0.98rem; }
+.weather-option .besk { font-size: 0.8rem; color: var(--ink-soft); }
+.weather-option:has(input:checked) {
+  border-color: var(--sky-500);
+  box-shadow: 0 0 0 3px var(--sky-100), var(--shadow-sm);
+  background: var(--sky-50);
+}
+.weather-option:has(input:focus-visible) {
+  box-shadow: 0 0 0 3px var(--sky-200);
+}
+
+/* ---------------- Prisbanner i formuläret ---------------- */
+.price-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.2rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--sky-50), #fff8e8);
+  border: 1px dashed var(--sky-200);
+  margin-bottom: 1.4rem;
+}
+.price-banner-label { font-weight: 600; color: var(--ink-soft); }
+.price-banner-amount { font-size: 1.5rem; font-weight: 800; color: var(--ink); }
+.price-banner.free .price-banner-amount { color: var(--good); }
+
+.form-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.form-message { margin: 0; font-weight: 600; }
+.form-message.ok { color: var(--good); }
+.form-message.err { color: var(--bad); }
+
+/* ---------------- Priskort ---------------- */
+.pricing {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.4rem;
+}
+.price-card { position: relative; padding: 1.8rem; }
+.price-card h3 { font-size: 1.25rem; }
+.price-card.featured { border-color: var(--sky-300); box-shadow: 0 18px 40px -16px rgba(37,99,235,0.45); }
+.badge {
+  position: absolute;
+  top: -0.7rem;
+  right: 1.4rem;
+  background: var(--sun);
+  color: #6b4d05;
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+.price { margin: 0.8rem 0 1.2rem; }
+.price .amount { font-size: 2.8rem; font-weight: 800; letter-spacing: -0.03em; }
+.price .per { color: var(--ink-soft); font-weight: 600; }
+.checklist { list-style: none; padding: 0; margin: 0 0 1.4rem; }
+.checklist li { padding: 0.35rem 0 0.35rem 1.7rem; position: relative; color: var(--ink-soft); }
+.checklist li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--sky-600);
+  font-weight: 800;
+}
+.sub-form { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.sub-form input { flex: 1 1 160px; }
+
+/* ---------------- Tabell ---------------- */
+.table-card { padding: 0.4rem 0.4rem 0.6rem; overflow-x: auto; }
+.wishes { width: 100%; border-collapse: collapse; }
+.wishes th, .wishes td {
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.wishes thead th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.wishes tbody tr:last-child td { border-bottom: 0; }
+.wishes tbody tr:hover { background: var(--sky-50); }
+.wishes .num { text-align: right; }
+.wishes .weather-cell { display: flex; align-items: center; gap: 0.55rem; font-weight: 600; }
+.wishes .weather-cell .emoji { font-size: 1.3rem; }
+.pill {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+.pill.styck { background: var(--sky-100); color: var(--sky-700); }
+.pill.abonnemang { background: var(--good-bg); color: var(--good); }
+
+.muted { color: var(--ink-soft); }
+
+/* ---------------- Footer ---------------- */
+.sitefooter {
+  text-align: center;
+  padding: 2.5rem 1rem 3rem;
+  color: var(--ink-soft);
+}
+
+/* ---------------- Responsivt ---------------- */
+@media (max-width: 560px) {
+  .field-row { grid-template-columns: 1fr; }
+  .topnav { display: none; }
+}
