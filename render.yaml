@@ -1,0 +1,10 @@
+# Render Blueprint – lägger upp Väderhälsning som en webbtjänst.
+# Render läser denna fil automatiskt när du kopplar repot.
+services:
+  - type: web
+    name: vaderhalsning
+    runtime: node
+    plan: free
+    rootDir: vaderonskningar
+    buildCommand: npm install
+    startCommand: npm start
