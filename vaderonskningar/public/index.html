@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Väderönskan – önska ditt väder</title>
-  <meta name="description" content="Önska vilket väder du vill ha en specifik dag. 10 kr per önskan eller 50 kr/månad för fritt antal önskningar.">
+  <title>Väderhälsning – skapa ett grattiskort med en väderönskan</title>
+  <meta name="description" content="Skapa ett personligt grattiskort med en väderönskan för någons bemärkelsedag och skriv ut det direkt.">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌤️</text></svg>">
 </head>
@@ -13,12 +13,11 @@
   <header class="topbar">
     <a class="brand" href="#">
       <span class="brand-emoji" aria-hidden="true">🌤️</span>
-      <span>Väderönskan</span>
+      <span>Väderhälsning</span>
     </a>
     <nav class="topnav">
-      <a href="#onska">Önska väder</a>
-      <a href="#priser">Priser</a>
-      <a href="#onskningar">Önskningar</a>
+      <a href="#skapa">Skapa kort</a>
+      <a href="#galleri">Tidigare kort</a>
     </nav>
   </header>
 
@@ -26,27 +25,27 @@
     <!-- Hero -->
     <section class="hero">
       <div class="hero-inner">
-        <p class="eyebrow">Beställ vädret du drömmer om</p>
-        <h1>Önska ditt väder<br>för en specifik dag.</h1>
+        <p class="eyebrow">Skicka en hälsning på avstånd</p>
+        <h1>Ett grattiskort<br>med ditt önskeväder.</h1>
         <p class="lead">
-          Sol till bröllopet? Snö till julafton? Välj vädertyp och datum –
-          så ordnar vi resten. <strong>10 kr per önskan</strong>, eller teckna
-          <strong>abonnemang för 50 kr/månad</strong> med fritt antal önskningar.
+          Kan du inte vara med på bemärkelsedagen, men vill ändå skicka en
+          varm hälsning? Välj en vädertyp, skriv ett par rader – och
+          <strong>skriv ut ditt personliga kort direkt.</strong>
         </p>
-        <a class="btn btn-primary btn-lg" href="#onska">Gör en önskan →</a>
+        <a class="btn btn-primary btn-lg" href="#skapa">Skapa ett kort →</a>
       </div>
     </section>
 
-    <!-- Önskeformulär -->
-    <section id="onska" class="section">
+    <!-- Skapa kort -->
+    <section id="skapa" class="section">
       <div class="section-head">
-        <h2>Gör en väderönskan</h2>
-        <p>Tre steg: välj vädertyp, välj datum och ange din e-post.</p>
+        <h2>Skapa ditt kort</h2>
+        <p>Välj väder, fyll i mottagare och avsändare och skriv en hälsning.</p>
       </div>
 
-      <form id="onskeform" class="card form-card" autocomplete="off">
+      <form id="kortform" class="card form-card" autocomplete="off">
         <fieldset class="field">
-          <legend>1. Välj vädertyp</legend>
+          <legend>1. Önska en vädertyp</legend>
           <div id="vadertyper" class="weather-grid" role="radiogroup" aria-label="Vädertyp">
             <p class="muted">Laddar vädertyper…</p>
           </div>
@@ -54,92 +53,55 @@
 
         <div class="field-row">
           <div class="field">
-            <label for="datum">2. Önskat datum</label>
+            <label for="datum">2. Bemärkelsedag</label>
             <input type="date" id="datum" name="datum" required>
           </div>
           <div class="field">
-            <label for="epost">3. Din e-post</label>
-            <input type="email" id="epost" name="epost" placeholder="namn@exempel.se" required>
+            <label for="mottagare">3. Till</label>
+            <input type="text" id="mottagare" name="mottagare" maxlength="80" placeholder="t.ex. Mormor Astrid" required>
+          </div>
+          <div class="field">
+            <label for="avsandare">4. Från</label>
+            <input type="text" id="avsandare" name="avsandare" maxlength="80" placeholder="t.ex. Familjen Svensson" required>
           </div>
         </div>
 
-        <div id="prisruta" class="price-banner">
-          <span class="price-banner-label">Pris för denna önskan</span>
-          <span id="prisbelopp" class="price-banner-amount">10 kr</span>
+        <div class="field">
+          <label for="halsning">5. Din hälsning <span class="muted">(valfritt)</span></label>
+          <textarea id="halsning" name="halsning" rows="3" maxlength="500"
+            placeholder="Stort grattis på dagen! Tänker på dig även om jag inte kunde vara med."></textarea>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary btn-lg">Skicka önskan</button>
+          <button type="submit" class="btn btn-primary btn-lg">Skapa kort 🎉</button>
           <p id="formmeddelande" class="form-message" role="status"></p>
         </div>
       </form>
-    </section>
 
-    <!-- Priser -->
-    <section id="priser" class="section">
-      <div class="section-head">
-        <h2>Priser</h2>
-        <p>Betala per önskan eller skaffa abonnemang om du önskar ofta.</p>
-      </div>
-
-      <div class="pricing">
-        <div class="card price-card">
-          <h3>Per önskan</h3>
-          <p class="price"><span class="amount">10</span> kr<span class="per">/önskan</span></p>
-          <ul class="checklist">
-            <li>En vädertyp för ett valt datum</li>
-            <li>Ingen bindningstid</li>
-            <li>Betala bara när du önskar</li>
-          </ul>
-          <a class="btn btn-outline" href="#onska">Gör en önskan</a>
-        </div>
-
-        <div class="card price-card featured">
-          <span class="badge">Populärast</span>
-          <h3>Abonnemang</h3>
-          <p class="price"><span class="amount">50</span> kr<span class="per">/månad</span></p>
-          <ul class="checklist">
-            <li><strong>Fritt antal</strong> önskningar</li>
-            <li>Alla vädertyper, alla datum</li>
-            <li>Önskningar blir kostnadsfria</li>
-          </ul>
-          <form id="abonnemangsform" class="sub-form">
-            <input type="email" id="abonnemangsepost" placeholder="namn@exempel.se" aria-label="E-post för abonnemang" required>
-            <button type="submit" class="btn btn-primary">Teckna abonnemang</button>
-          </form>
-          <p id="abonnemangsmeddelande" class="form-message" role="status"></p>
+      <!-- Färdigt kort visas här -->
+      <div id="kortvisning" class="kort-visning" hidden>
+        <div id="grattiskort" class="greeting-card" aria-live="polite"></div>
+        <div class="kort-knappar no-print">
+          <button id="skrivutknapp" class="btn btn-primary btn-lg">🖨️ Skriv ut kort</button>
+          <button id="nyttkortknapp" class="btn btn-outline">Skapa ett nytt kort</button>
         </div>
       </div>
     </section>
 
-    <!-- Önskningar -->
-    <section id="onskningar" class="section">
+    <!-- Galleri -->
+    <section id="galleri" class="section no-print">
       <div class="section-head">
-        <h2>Senaste önskningarna</h2>
-        <p>Alla väderönskningar som lagts hittills.</p>
+        <h2>Tidigare skapade kort</h2>
+        <p>De senaste väderhälsningarna som har skapats.</p>
       </div>
-
-      <div class="card table-card">
-        <table class="wishes">
-          <thead>
-            <tr>
-              <th scope="col">Väder</th>
-              <th scope="col">Datum</th>
-              <th scope="col">Av</th>
-              <th scope="col">Betalning</th>
-              <th scope="col" class="num">Pris</th>
-            </tr>
-          </thead>
-          <tbody id="onskningstabell">
-            <tr><td colspan="5" class="muted">Laddar önskningar…</td></tr>
-          </tbody>
-        </table>
+      <div id="kortgalleri" class="galleri">
+        <p class="muted">Laddar kort…</p>
       </div>
     </section>
   </main>
 
-  <footer class="sitefooter">
-    <p>🌤️ Väderönskan – en databasuppgift. Vädret levereras i mån av tillgång. ☀️</p>
+  <footer class="sitefooter no-print">
+    <p>🌤️ Väderhälsning – en databasuppgift. Skapa, skriv ut och skicka med värme. ☀️</p>
   </footer>
 
   <script src="app.js"></script>

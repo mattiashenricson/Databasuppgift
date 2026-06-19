@@ -1,9 +1,11 @@
 'use strict';
 
 // ---------------------------------------------------------------------------
-// Väderönskningar – webbserver
-// Kunder kan önska väder för ett specifikt datum. Det kostar 10 kr per
-// önskan, eller 50 kr/månad som abonnemang med fritt antal önskningar.
+// Väderhälsning – webbserver
+// Kunden skapar ett grattiskort med en väderönskan för någons bemärkelsedag,
+// och kan skriva ut kortet direkt. Använd när man inte kan närvara men ändå
+// vill skicka en hälsning. (Betaltjänst är inte påkopplad i denna version –
+// man får ett kort direkt.)
 //
 // Servern levererar dels en statisk frontend (mappen public/), dels ett
 // litet JSON-API som frontend pratar med.
@@ -57,12 +59,11 @@ function lasBody(req) {
   });
 }
 
-// Enkel validering av e-post och datum (frontend validerar också).
-function giltigEpost(v) {
-  return typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-}
 function giltigtDatum(v) {
   return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(Date.parse(v));
+}
+function ickeTomText(v, maxlangd) {
+  return typeof v === 'string' && v.trim().length > 0 && v.length <= maxlangd;
 }
 
 // ---------------- Statiska filer ----------------
@@ -95,41 +96,13 @@ async function hanteraApi(req, resp, pathname) {
       return skickaJson(resp, 200, db.hamtaVadertyper());
     }
 
-    // Priser
-    if (req.method === 'GET' && pathname === '/api/priser') {
-      return skickaJson(resp, 200, { styckpris: db.STYCKPRIS, manadspris: db.MANADSPRIS });
+    // Lista alla skapade kort
+    if (req.method === 'GET' && pathname === '/api/kort') {
+      return skickaJson(resp, 200, db.hamtaKort());
     }
 
-    // Lista alla önskningar
-    if (req.method === 'GET' && pathname === '/api/onskningar') {
-      return skickaJson(resp, 200, db.hamtaOnskningar());
-    }
-
-    // Kontrollera abonnemangsstatus för en e-postadress
-    if (req.method === 'GET' && pathname === '/api/abonnemang') {
-      const epost = url.parse(req.url, true).query.epost;
-      if (!giltigEpost(epost)) {
-        return skickaJson(resp, 400, { fel: 'Ange en giltig e-postadress.' });
-      }
-      const ab = db.aktivtAbonnemang(epost);
-      return skickaJson(resp, 200, { aktivt: !!ab, abonnemang: ab || null });
-    }
-
-    // Teckna abonnemang (50 kr/mån, fritt antal önskningar)
-    if (req.method === 'POST' && pathname === '/api/abonnemang') {
-      const body = await lasBody(req);
-      if (!giltigEpost(body.epost)) {
-        return skickaJson(resp, 400, { fel: 'Ange en giltig e-postadress.' });
-      }
-      if (db.aktivtAbonnemang(body.epost)) {
-        return skickaJson(resp, 409, { fel: 'Den här e-postadressen har redan ett aktivt abonnemang.' });
-      }
-      const ab = db.tecknaAbonnemang(body.epost);
-      return skickaJson(resp, 201, ab);
-    }
-
-    // Lägg en väderönskan
-    if (req.method === 'POST' && pathname === '/api/onskningar') {
+    // Skapa ett grattiskort
+    if (req.method === 'POST' && pathname === '/api/kort') {
       const body = await lasBody(req);
       if (!body.vadertyp) {
         return skickaJson(resp, 400, { fel: 'Välj en vädertyp.' });
@@ -137,16 +110,24 @@ async function hanteraApi(req, resp, pathname) {
       if (!giltigtDatum(body.datum)) {
         return skickaJson(resp, 400, { fel: 'Välj ett giltigt datum (ÅÅÅÅ-MM-DD).' });
       }
-      if (!giltigEpost(body.epost)) {
-        return skickaJson(resp, 400, { fel: 'Ange en giltig e-postadress.' });
+      if (!ickeTomText(body.mottagare, 80)) {
+        return skickaJson(resp, 400, { fel: 'Ange vem kortet är till.' });
+      }
+      if (!ickeTomText(body.avsandare, 80)) {
+        return skickaJson(resp, 400, { fel: 'Ange vem kortet är från.' });
+      }
+      if (body.halsning && body.halsning.length > 500) {
+        return skickaJson(resp, 400, { fel: 'Hälsningen är för lång (max 500 tecken).' });
       }
       try {
-        const onskan = db.laggOnskan({
+        const kort = db.skapaKort({
           vadertypKod: body.vadertyp,
-          onskedatum: body.datum,
-          epost: body.epost
+          datum: body.datum,
+          mottagare: body.mottagare.trim(),
+          avsandare: body.avsandare.trim(),
+          halsning: body.halsning ? body.halsning.trim() : ''
         });
-        return skickaJson(resp, 201, onskan);
+        return skickaJson(resp, 201, kort);
       } catch (e) {
         return skickaJson(resp, 400, { fel: e.message });
       }
@@ -171,7 +152,7 @@ const server = http.createServer((req, resp) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Väderönskningar kör på http://localhost:${PORT}`);
+  console.log(`Väderhälsning kör på http://localhost:${PORT}`);
 });
 
 module.exports = server;

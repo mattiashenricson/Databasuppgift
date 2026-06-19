@@ -1,17 +1,15 @@
-# Väderönskan 🌤️
+# Väderhälsning 🌤️
 
-En webbplats där kunder kan lägga in önskemål om väder för en specifik dag.
-Kunden väljer en typisk vädertyp (sol, regn, snö, åska …) och ett datum.
+En webbplats där man skapar ett **grattiskort med en väderönskan** för någons
+bemärkelsedag och skriver ut det direkt. Tanken är att kunna skicka en varm
+hälsning även när man inte kan närvara på dagen.
 
-## Pris
+Kunden väljer en typisk vädertyp (sol, regn, snö, åska …), ett datum,
+mottagare och avsändare samt en valfri hälsning – och får ett färdigt,
+utskrivbart kort på skärmen.
 
-| Alternativ   | Pris            | Innehåll                          |
-|--------------|-----------------|-----------------------------------|
-| Per önskan   | **10 kr**       | En önskan för ett valt datum      |
-| Abonnemang   | **50 kr/månad** | **Fritt antal** önskningar        |
-
-Har kunden ett aktivt abonnemang blir varje önskan kostnadsfri (0 kr).
-Annars kostar varje önskan 10 kr.
+> **Obs:** Betaltjänsten är inte påkopplad i denna version. Man får ett kort
+> direkt.
 
 ## Köra applikationen
 
@@ -25,28 +23,29 @@ npm start
 
 Surfa sedan till <http://localhost:8888>.
 
+1. Välj en vädertyp.
+2. Fyll i bemärkelsedag, mottagare och avsändare samt en valfri hälsning.
+3. Klicka **Skapa kort** – kortet visas direkt.
+4. Klicka **Skriv ut kort** för att skriva ut det (endast kortet skrivs ut).
+
 Databasfilen `vaderonskningar.db` skapas automatiskt första gången och
 fylls på med vädertyper.
 
 ## Datamodell
 
-Se [`schema.sql`](schema.sql). Tre tabeller:
+Se [`schema.sql`](schema.sql). Två tabeller:
 
 - **vadertyp** – de vädertyper kunden kan välja mellan.
-- **abonnemang** – tecknade månadsabonnemang (50 kr/mån).
-- **onskan** – en väderönskan för ett datum, med pris och betalningstyp
-  (`styck` = 10 kr, `abonnemang` = 0 kr).
+- **kort** – ett skapat grattiskort med vädertyp, datum, mottagare,
+  avsändare och en valfri hälsning.
 
 ## API
 
-| Metod | Väg                            | Beskrivning                                  |
-|-------|--------------------------------|----------------------------------------------|
-| GET   | `/api/vadertyper`              | Lista alla vädertyper                        |
-| GET   | `/api/priser`                  | Styckpris och månadspris                      |
-| GET   | `/api/onskningar`              | Lista alla önskningar                         |
-| POST  | `/api/onskningar`              | Lägg en önskan `{vadertyp, datum, epost}`     |
-| GET   | `/api/abonnemang?epost=…`      | Kontrollera abonnemangsstatus                 |
-| POST  | `/api/abonnemang`              | Teckna abonnemang `{epost}`                   |
+| Metod | Väg               | Beskrivning                                                   |
+|-------|-------------------|---------------------------------------------------------------|
+| GET   | `/api/vadertyper` | Lista alla vädertyper                                         |
+| GET   | `/api/kort`       | Lista alla skapade kort                                       |
+| POST  | `/api/kort`       | Skapa ett kort `{vadertyp, datum, mottagare, avsandare, halsning?}` |
 
 ## Filer
 
@@ -58,6 +57,6 @@ vaderonskningar/
 ├── package.json
 └── public/            # Frontend
     ├── index.html
-    ├── styles.css
+    ├── styles.css     # inkl. utskriftsstil för kortet
     └── app.js
 ```

@@ -1,9 +1,20 @@
 'use strict';
 
-// Frontend för Väderönskan. Pratar med JSON-API:t i server.js.
+// Frontend för Väderhälsning. Pratar med JSON-API:t i server.js.
 
-const STYCKPRIS = 10;
 let valdVadertyp = null;
+
+// Tema (gradient + en kort fras) per vädertyp till det färdiga kortet.
+const VADER_TEMA = {
+  sol:      { grad: 'linear-gradient(160deg,#fde68a,#fbbf24)', frase: 'Strålande sol till dig!' },
+  lattmoln: { grad: 'linear-gradient(160deg,#bae6fd,#7dd3fc)', frase: 'Sol och lätta moln på din dag!' },
+  moln:     { grad: 'linear-gradient(160deg,#e2e8f0,#cbd5e1)', frase: 'Mjukt ljus hela dagen!' },
+  regn:     { grad: 'linear-gradient(160deg,#93c5fd,#60a5fa)', frase: 'Ett skönt regn just för dig!' },
+  sno:      { grad: 'linear-gradient(160deg,#e0f2fe,#bae6fd)', frase: 'Mjuka snöflingor till dig!' },
+  aska:     { grad: 'linear-gradient(160deg,#a5b4fc,#818cf8)', frase: 'Blixt och dunder på din dag!' },
+  dimma:    { grad: 'linear-gradient(160deg,#e5e7eb,#d1d5db)', frase: 'Stämningsfull dimma till dig!' },
+  regnbage: { grad: 'linear-gradient(160deg,#fbcfe8,#a7f3d0)', frase: 'En regnbåge bara för dig!' }
+};
 
 // ---------------- Hjälp ----------------
 async function api(metod, vag, kropp) {
@@ -23,8 +34,14 @@ function visaMeddelande(el, text, typ) {
 }
 
 function formateraDatum(iso) {
-  // iso kan vara 'ÅÅÅÅ-MM-DD' eller full tidsstämpel.
-  return new Date(iso).toLocaleDateString('sv-SE', { year: 'numeric', month: 'short', day: 'numeric' });
+  return new Date(iso).toLocaleDateString('sv-SE', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+// Enkel HTML-escaping för text som användaren skrivit.
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text == null ? '' : String(text);
+  return div.innerHTML;
 }
 
 // ---------------- Vädertyper ----------------
@@ -39,137 +56,112 @@ async function laddaVadertyper() {
       label.innerHTML = `
         <input type="radio" name="vadertyp" value="${t.kod}">
         <span class="emoji" aria-hidden="true">${t.emoji}</span>
-        <span class="namn">${t.namn}</span>
-        <span class="besk">${t.beskrivning}</span>`;
+        <span class="namn">${escapeHtml(t.namn)}</span>
+        <span class="besk">${escapeHtml(t.beskrivning)}</span>`;
       label.querySelector('input').addEventListener('change', () => {
         valdVadertyp = t.kod;
       });
       behallare.appendChild(label);
     }
   } catch (e) {
-    behallare.innerHTML = `<p class="form-message err">Kunde inte ladda vädertyper: ${e.message}</p>`;
+    behallare.innerHTML = `<p class="form-message err">Kunde inte ladda vädertyper: ${escapeHtml(e.message)}</p>`;
   }
 }
 
-// ---------------- Priser ----------------
-async function laddaPriser() {
-  try {
-    const p = await api('GET', '/api/priser');
-    document.getElementById('prisbelopp').textContent = p.styckpris + ' kr';
-  } catch (e) { /* standardvärde står redan i HTML */ }
+// ---------------- Rendera det färdiga kortet ----------------
+function renderaKort(kort) {
+  const tema = VADER_TEMA[kort.vaderkod] || { grad: 'linear-gradient(160deg,#7dd3fc,#38bdf8)', frase: 'En väderhälsning till dig!' };
+  const halsningHtml = kort.halsning
+    ? `<p class="kort-halsning">${escapeHtml(kort.halsning)}</p>`
+    : '';
+
+  const el = document.getElementById('grattiskort');
+  el.style.setProperty('--kort-grad', tema.grad);
+  el.innerHTML = `
+    <div class="kort-scen">
+      <div class="kort-emoji" aria-hidden="true">${kort.vaderemoji}</div>
+      <p class="kort-tagline">${escapeHtml(tema.frase)}</p>
+    </div>
+    <div class="kort-kropp">
+      <p class="kort-till">Till ${escapeHtml(kort.mottagare)}</p>
+      <span class="kort-datum">${formateraDatum(kort.datum)}</span>
+      ${halsningHtml}
+      <p class="kort-onskan">Jag önskar dig ${escapeHtml(kort.vadernamn.toLowerCase())} på din dag. ${kort.vaderemoji}</p>
+      <div class="kort-fran">Varma hälsningar,<br><strong>${escapeHtml(kort.avsandare)}</strong></div>
+    </div>`;
+
+  const visning = document.getElementById('kortvisning');
+  visning.hidden = false;
+  visning.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// Uppdaterar prisrutan beroende på om e-postadressen har ett abonnemang.
-async function uppdateraPris() {
-  const epost = document.getElementById('epost').value.trim();
-  const ruta = document.getElementById('prisruta');
-  const belopp = document.getElementById('prisbelopp');
-
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(epost)) {
-    try {
-      const status = await api('GET', '/api/abonnemang?epost=' + encodeURIComponent(epost));
-      if (status.aktivt) {
-        ruta.classList.add('free');
-        belopp.textContent = '0 kr (abonnemang)';
-        return;
-      }
-    } catch (e) { /* faller igenom till styckpris */ }
-  }
-  ruta.classList.remove('free');
-  belopp.textContent = STYCKPRIS + ' kr';
-}
-
-// ---------------- Önskningar ----------------
-async function laddaOnskningar() {
-  const tabell = document.getElementById('onskningstabell');
+// ---------------- Galleri ----------------
+async function laddaGalleri() {
+  const galleri = document.getElementById('kortgalleri');
   try {
-    const rader = await api('GET', '/api/onskningar');
-    if (rader.length === 0) {
-      tabell.innerHTML = '<tr><td colspan="5" class="muted">Inga önskningar ännu – bli först!</td></tr>';
+    const kort = await api('GET', '/api/kort');
+    if (kort.length === 0) {
+      galleri.innerHTML = '<p class="muted">Inga kort ännu – skapa det första!</p>';
       return;
     }
-    tabell.innerHTML = rader.map((r) => {
-      const prisText = r.pris === 0 ? '0 kr' : r.pris + ' kr';
-      const pillKlass = r.betalningstyp === 'abonnemang' ? 'abonnemang' : 'styck';
-      const pillText = r.betalningstyp === 'abonnemang' ? 'Abonnemang' : 'Styck';
-      return `<tr>
-        <td><span class="weather-cell"><span class="emoji">${r.vaderemoji}</span>${r.vadernamn}</span></td>
-        <td>${formateraDatum(r.onskedatum)}</td>
-        <td>${maskeraEpost(r.epost)}</td>
-        <td><span class="pill ${pillKlass}">${pillText}</span></td>
-        <td class="num">${prisText}</td>
-      </tr>`;
-    }).join('');
+    galleri.innerHTML = kort.map((k) => `
+      <div class="galleri-kort">
+        <span class="gk-emoji" aria-hidden="true">${k.vaderemoji}</span>
+        <div>
+          <div class="gk-namn">Till ${escapeHtml(k.mottagare)}</div>
+          <div class="gk-meta">${escapeHtml(k.vadernamn)} · ${formateraDatum(k.datum)}</div>
+          <div class="gk-meta">Från ${escapeHtml(k.avsandare)}</div>
+        </div>
+      </div>`).join('');
   } catch (e) {
-    tabell.innerHTML = `<tr><td colspan="5" class="form-message err">Kunde inte ladda önskningar: ${e.message}</td></tr>`;
+    galleri.innerHTML = `<p class="form-message err">Kunde inte ladda kort: ${escapeHtml(e.message)}</p>`;
   }
-}
-
-// Visa bara början av e-postadressen av integritetsskäl.
-function maskeraEpost(epost) {
-  const [namn, domän] = epost.split('@');
-  if (!domän) return epost;
-  const synligt = namn.slice(0, 2);
-  return `${synligt}${'*'.repeat(Math.max(1, namn.length - 2))}@${domän}`;
 }
 
 // ---------------- Formulärhantering ----------------
 function kopplaFormular() {
-  const form = document.getElementById('onskeform');
+  const form = document.getElementById('kortform');
   const meddelande = document.getElementById('formmeddelande');
-  const epostfalt = document.getElementById('epost');
-
-  // Sätt minsta datum till idag.
   const datumfalt = document.getElementById('datum');
-  datumfalt.min = new Date().toISOString().slice(0, 10);
-
-  epostfalt.addEventListener('input', uppdateraPris);
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!valdVadertyp) {
       return visaMeddelande(meddelande, 'Välj en vädertyp först.', 'err');
     }
-    const datum = datumfalt.value;
-    const epost = epostfalt.value.trim();
-    visaMeddelande(meddelande, 'Skickar…', '');
+    const payload = {
+      vadertyp: valdVadertyp,
+      datum: datumfalt.value,
+      mottagare: document.getElementById('mottagare').value.trim(),
+      avsandare: document.getElementById('avsandare').value.trim(),
+      halsning: document.getElementById('halsning').value.trim()
+    };
+    visaMeddelande(meddelande, 'Skapar kort…', '');
     try {
-      const onskan = await api('POST', '/api/onskningar', { vadertyp: valdVadertyp, datum, epost });
-      const prisText = onskan.pris === 0
-        ? 'Den täcks av ditt abonnemang – ingen kostnad!'
-        : `Kostnad: ${onskan.pris} kr.`;
-      visaMeddelande(meddelande, `${onskan.vaderemoji} Önskan registrerad för ${formateraDatum(onskan.onskedatum)}. ${prisText}`, 'ok');
-      form.reset();
-      valdVadertyp = null;
-      uppdateraPris();
-      laddaOnskningar();
+      const kort = await api('POST', '/api/kort', payload);
+      visaMeddelande(meddelande, '', '');
+      renderaKort(kort);
+      laddaGalleri();
     } catch (err) {
       visaMeddelande(meddelande, err.message, 'err');
     }
   });
-}
 
-function kopplaAbonnemang() {
-  const form = document.getElementById('abonnemangsform');
-  const meddelande = document.getElementById('abonnemangsmeddelande');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const epost = document.getElementById('abonnemangsepost').value.trim();
-    visaMeddelande(meddelande, 'Tecknar…', '');
-    try {
-      const ab = await api('POST', '/api/abonnemang', { epost });
-      visaMeddelande(meddelande, `Abonnemang tecknat! Giltigt t.o.m. ${formateraDatum(ab.slutdatum)}. Dina önskningar är nu kostnadsfria.`, 'ok');
-      form.reset();
-      uppdateraPris();
-    } catch (err) {
-      visaMeddelande(meddelande, err.message, 'err');
-    }
+  // Skriv ut det färdiga kortet.
+  document.getElementById('skrivutknapp').addEventListener('click', () => {
+    window.print();
+  });
+
+  // Börja om: dölj kortet och nollställ formuläret.
+  document.getElementById('nyttkortknapp').addEventListener('click', () => {
+    document.getElementById('kortvisning').hidden = true;
+    form.reset();
+    valdVadertyp = null;
+    document.getElementById('skapa').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 }
 
 // ---------------- Start ----------------
 laddaVadertyper();
-laddaPriser();
-laddaOnskningar();
+laddaGalleri();
 kopplaFormular();
-kopplaAbonnemang();
